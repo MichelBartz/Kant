@@ -1,6 +1,6 @@
 <?php
 namespace Kant\Proxy\DataSource;
-class Redis
+class Redis implements \Kant\Proxy\IDataSource
 {
 	const PROXIES = "proxies";
 

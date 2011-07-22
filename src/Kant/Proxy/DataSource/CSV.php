@@ -1,6 +1,6 @@
 <?php
 namespace Kant\Proxy\DataSource;
-class CSV
+class CSV implements \Kant\Proxy\IDataSource
 {
 	private $_csvFile;
 	private $_csvHandler;
