@@ -13,14 +13,21 @@ namespace Kant
 
 		/**
 		 * Frequency at which we rotate the proxies
-		 * @var String $proxyRotationFrequency
+		 * @var int $proxyRotationFrequency
 		 */
 		public $proxyRotationFrequency = 5;
+		/**
+		 * Number of retry for a given url
+		 * @var int $retryCount
+		 */
+		public $retryCount = 5;
 
 		private $_responseHttpCode = 0;
+		private $_noProxy = false;
 		private $_proxyFeeder;
 		private $_currentProxy;
 		private $_rotationCount = 0;
+		private $_numRetries = 0;
 		private $_httpMethod;
 		private $_userAgent;
 		private $_cookies;
@@ -32,6 +39,7 @@ namespace Kant
 		public function __construct(Proxy\IDataSource $dataSource) {
 			$this->_proxyFeeder = new Proxy\Feeder();
 			$this->_proxyFeeder->setDataSource($dataSource);
+			$this->_currentProxy = $this->_proxyFeeder->getProxy();
 		}
 		/**
 		 * Set the HTTP Method to use for the calls
@@ -42,6 +50,10 @@ namespace Kant
 			$this->_httpMethod = $method;
 			return $this;
 		}	
+		public function setNoProxy($value) {
+			$this->_noProxy = $value;
+			return $this;
+		}
 		public function setUserAgent($userAgent) {
 			$this->_userAgent = $userAgent;
 			return $this;
@@ -78,19 +90,30 @@ namespace Kant
 			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->_timeout);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-			if($this->_rotationCount >= $this->proxyRotationFrequency) {
-				$this->_currentProxy = $this->_proxyFeeder->getProxy();
-				$this->_rotationCount = 0;
+			if(!$this->_noProxy) {
+				if($this->_rotationCount >= $this->proxyRotationFrequency) {
+					$this->_currentProxy = $this->_proxyFeeder->getProxy();
+					$this->_rotationCount = 0;
+				}
+				curl_setopt($ch, CURLOPT_PROXY, $this->_currentProxy['ip']);
+				curl_setopt($ch, CURLOPT_PROXYPORT, $this->_currentProxy['port']); 
+				$this->_rotationCount++;
 			}
-			curl_setopt($ch, CURLOPT_PROXY, $this->_currentProxy['ip']);
-			curl_setopt($ch, CURLOPT_PROXYPORT, $this->_currentProxy['port']); 
-			$this->_rotationCount++;
 
 			$output = curl_exec($ch);
 			$this->_responseHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 			if(curl_errno($ch) > 0) {
 				$this->_curlErrorMsg = curl_error($ch);
 				$this->_curlErrorNo = curl_errno($ch);
+
+				if(!$this->noProxy) {
+					$this->_rotationCount = 10;
+				}
+				$this->_numRetries++;
+				if($this->_numRetries < $this->retryCount) {
+					$this->load($url);
+				}
+
 				return false;
 			}
 			return $output;
