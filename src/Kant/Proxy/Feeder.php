@@ -1,30 +1,33 @@
 <?php
-namespace Kant\Proxy;
-class Feeder
+namespace Kant\Proxy
 {
-	private $_dataSource;
+	require_once "Kant/Proxy/IDataSource.php";
+	class Feeder
+	{
+		private $_dataSource;
 
-	public function __construct() {
-	}
-
-	public function setDataSource(\Kant\Proxy\IDataSource $dataSource) {
-		$this->_dataSource = $dataSource;
-	}
-	
-	/**
-	 * Return the proxy information
-	 * @return array [ip => ip_adress, port=>server_port]
-	 */
-	public function getProxy() {
-		$proxy = $this->_dataSource->getProxy();
-		if(!$proxy) {
-			throw new ProxyException("No more proxy available."); 
+		public function __construct() {
 		}
-		return $proxy;
-	}
-}
 
-class ProxyException extends Exception
-{
-	
+		public function setDataSource(\Kant\Proxy\IDataSource $dataSource) {
+			$this->_dataSource = $dataSource;
+		}
+
+		/**
+		 * Return the proxy information
+		 * @return array [ip => ip_adress, port=>server_port]
+		 */
+		public function getProxy() {
+			$proxy = $this->_dataSource->getProxy();
+			if(!$proxy) {
+				throw new ProxyException("No more proxy available."); 
+			}
+			return $proxy;
+		}
+	}
+
+	class ProxyException extends \Exception
+	{
+
+	}
 }

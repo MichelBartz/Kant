@@ -1,6 +1,8 @@
 <?php
-namespace Kant\Proxy;
-interface IDataSource
+namespace Kant\Proxy 
 {
-	public function getProxy();
+	interface IDataSource
+	{
+		public function getProxy();
+	}
 }
