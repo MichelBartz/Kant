@@ -63,7 +63,7 @@ namespace Kant
 		 * @param String $url The url to load
 		 * @return String
 		 */
-		public function load(String $url) {
+		public function load($url) {
 			$ch = curl_init($url);
 
 			if(isset($this->_userAgent)) {
